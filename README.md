@@ -28,10 +28,12 @@ The default live rate is 10 Hz. A five-minute test on the listed mouse delivered
 
 ## Build and run
 
+For the prebuilt app, [download MiniChroma.zip](https://github.com/KMThegamer2022/MiniChroma/raw/refs/heads/main/MiniChroma.zip), extract it, and move MiniChroma.app to Applications. This build is signed for local use and is not notarized.
+
 Requires Xcode with the macOS SDK. There are no third-party runtime dependencies.
 
 ```sh
-./build.sh
+zsh build.sh
 open dist/MiniChroma.app
 ```
 
