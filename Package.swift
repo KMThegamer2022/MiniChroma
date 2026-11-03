@@ -1,0 +1,3 @@
+// swift-tools-version: 6.0
+import PackageDescription
+let package = Package(name: "MiniChroma", platforms: [.macOS(.v15)], products: [.library(name:"ChromaCore",targets:["ChromaCore"]), .executable(name: "MiniChroma", targets: ["MiniChroma"]), .executable(name: "minichroma-diagnostic", targets: ["Diagnostic"])], targets: [.target(name: "USBBridge", linkerSettings: [.linkedFramework("IOKit"), .linkedFramework("CoreFoundation")]), .target(name: "ChromaCore", dependencies: ["USBBridge"]), .executableTarget(name: "MiniChroma", dependencies: ["ChromaCore"]), .executableTarget(name: "Diagnostic", dependencies: ["ChromaCore"]), .testTarget(name: "ChromaCoreTests", dependencies: ["ChromaCore", "MiniChroma"])], swiftLanguageModes: [.v5])

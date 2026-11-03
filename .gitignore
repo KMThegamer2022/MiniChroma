@@ -1,0 +1,11 @@
+.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+.DS_Store
+/dist/
+/work/
+*.app/
+*.zip
+*.log
