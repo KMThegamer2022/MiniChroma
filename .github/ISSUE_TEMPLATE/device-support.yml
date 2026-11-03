@@ -1,0 +1,71 @@
+name: Device support request
+description: Request investigation of another mouse or connection mode
+title: "[Device support]: "
+body:
+  - type: markdown
+    attributes:
+      value: "MiniChroma currently supports the wired DeathAdder V2 Mini (1532:008C). Another model needs model-specific implementation and hardware verification. This request invites investigation and does not guarantee support. Do not post serial numbers, unique Bluetooth addresses, or full system dumps."
+  - type: input
+    id: model
+    attributes:
+      label: Exact mouse model and revision
+      description: Include the full model name and revision if known.
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection mode to support
+      options:
+        - Wired USB
+        - Wireless USB receiver
+        - Bluetooth
+    validations:
+      required: true
+  - type: input
+    id: identifiers
+    attributes:
+      label: USB VID/PID
+      description: Hexadecimal vendor/product IDs; include receiver IDs where applicable. For Bluetooth-only requests explain that USB IDs are not applicable. Omit serial numbers and unique addresses.
+      placeholder: "VID 0x1532, PID 0x...."
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: macOS version/build and Mac chip
+      placeholder: "macOS 15.x, build ..., Apple M4"
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version, if known
+  - type: textarea
+    id: features
+    attributes:
+      label: Requested effects and existing behavior
+      description: Say what you want to work and whether any existing RGB tool controls this exact model.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Primary-source implementation references
+      description: Link model-specific OpenRazer/OpenRGB implementations or comparable protocol discussions, if available.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics
+      description: Include only relevant device/firmware information. Remove serials, user names, home paths, unique addresses, and unrelated devices. Do not try random USB commands to obtain a report.
+      render: text
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I understand this model is unverified and an issue does not guarantee support.
+          required: true
+        - label: I reviewed and redacted any diagnostic output before posting.
+          required: true
+        - label: I own this exact hardware and can help test proposed support.

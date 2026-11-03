@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible problem on a supported configuration
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: "For another mouse or connection mode, use the Device support request instead. Do not post USB serial numbers, unique Bluetooth addresses, audio recordings, or full system dumps."
+  - type: input
+    id: version
+    attributes:
+      label: MiniChroma version or commit
+    validations:
+      required: true
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware and macOS
+      description: Exact mouse model, wired/receiver/Bluetooth mode, USB VID/PID, firmware if known, macOS version/build, and Mac chip. Omit serial numbers.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and selected effect/settings
+      description: Include update rate, effect, relevant settings, hub/direct connection, and whether any other RGB controller was running.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostic report
+      description: Use Diagnostics → Read device where possible. Remove serials, user names, home-directory paths, and unrelated hardware. Mention permission errors without posting personal data.
+      render: text
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before submitting
+      options:
+        - label: I reviewed and redacted any diagnostic output before posting.
+          required: true
