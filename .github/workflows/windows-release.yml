@@ -1,0 +1,32 @@
+name: Windows build
+
+on:
+  push:
+    tags: ['windows-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows/src/MiniChroma.Windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish single-file exe
+        run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiniChroma-windows-x64
+          path: windows/src/MiniChroma.Windows/out/MiniChroma.exe
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/windows-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: windows/src/MiniChroma.Windows/out/MiniChroma.exe
