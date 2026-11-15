@@ -35,7 +35,7 @@ An early Windows version lives in [`windows/`](windows/). It controls keyboards 
 - **Download:** the installer is on the [latest `windows-v*` release](https://github.com/KMThegamer2022/MiniChroma/releases).
 - **You need:** OpenRGB running with its SDK Server turned on. The installer tells you this if OpenRGB isn't found.
 - **Features in this build:** static colour and the Claude agent lights. The game, OBS, Discord and build effects are Mac-only for now.
-- **Status:** this build compiles on GitHub's Windows runner, but it has not been tested on Windows hardware yet. Please report what works and what doesn't.
+- **Status: paused.** Windows development is on hold. The early builds compile on GitHub's Windows runner but have not worked on a Windows PC yet, so treat them as unfinished.
 
 The Mac app stays the reference version. Claude setup for Windows is in [`windows/README.md`](windows/README.md).
 
