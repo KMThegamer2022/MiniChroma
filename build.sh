@@ -6,6 +6,9 @@ build_directory=$(mktemp -d /tmp/minichroma-build.XXXXXX)
 output_directory="${MINICHROMA_OUTPUT_DIR:-$PWD/dist}"
 mkdir -p "$output_directory"
 xcodebuild -project MiniChroma.xcodeproj -scheme MiniChromaApp -configuration Release -derivedDataPath "$build_directory" ALWAYS_SEARCH_USER_PATHS=NO build
+if [[ -n "${MINICHROMA_SIGNING_IDENTITY:-}" ]]; then
+    codesign --force --sign "$MINICHROMA_SIGNING_IDENTITY" --timestamp=none "$build_directory/Build/Products/Release/MiniChroma.app"
+fi
 codesign --verify --deep --strict "$build_directory/Build/Products/Release/MiniChroma.app"
 ditto --norsrc -c -k --keepParent "$build_directory/Build/Products/Release/MiniChroma.app" "$output_directory/MiniChroma.zip"
 ditto --norsrc "$build_directory/Build/Products/Release/MiniChroma.app" "$output_directory/MiniChroma.app"

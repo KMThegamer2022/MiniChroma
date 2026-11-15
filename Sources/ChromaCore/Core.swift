@@ -14,19 +14,31 @@ public struct RGB: Codable, Equatable, Sendable {
     }
 }
 public enum Mode: String, Codable, CaseIterable, Identifiable, Sendable {
-    case off, staticColor, spectrum, reactive, breathSingle, breathDual, breathRandom, volume, battery, temperature, audio, rainbow, pulse
+    case off, staticColor, spectrum, reactive, breathSingle, breathDual, breathRandom, volume, battery, temperature, audio, beatAdapt, rainbow, pulse
     public var id: String { rawValue }
-    public var live: Bool { [.volume,.battery,.temperature,.audio,.rainbow,.pulse].contains(self) }
-    public var title: String { switch self { case .off:return "Off"; case .staticColor:return "Static"; case .spectrum:return "Spectrum"; case .reactive:return "Reactive"; case .breathSingle:return "Breathing · one colour"; case .breathDual:return "Breathing · two colours"; case .breathRandom:return "Breathing · random"; case .volume:return "System volume"; case .battery:return "Mac battery"; case .temperature:return "CPU temperature"; case .audio:return "Audio reactive"; case .rainbow:return "Custom rainbow"; case .pulse:return "Custom pulse" } }
+    public var live: Bool { [.volume,.battery,.temperature,.audio,.beatAdapt,.rainbow,.pulse].contains(self) }
+    public var usesAudio:Bool{self == .audio || self == .beatAdapt}
+    /// Effects the Ornata V3 X can show: static, spectrum, off, and live colour streams from frames.
+    public var keyboardSupported:Bool{[.off,.staticColor,.spectrum,.rainbow,.pulse,.volume,.battery,.temperature].contains(self)}
+    public var title: String { switch self { case .off:return "Off"; case .staticColor:return "Static"; case .spectrum:return "Spectrum"; case .reactive:return "Reactive"; case .breathSingle:return "Breathing · one colour"; case .breathDual:return "Breathing · two colours"; case .breathRandom:return "Breathing · random"; case .volume:return "System volume"; case .battery:return "Mac battery"; case .temperature:return "CPU temperature"; case .audio:return "Audio reactive"; case .beatAdapt:return "Beat Adapt"; case .rainbow:return "Custom rainbow"; case .pulse:return "Custom pulse" } }
 }
 public struct Preset: Codable, Equatable, Identifiable, Sendable {
     public var id = UUID(); public var name: String; public var mode: Mode = .off
     public var primary = RGB(0,1,0), secondary = RGB(0,0,1)
     public var rate = 10.0, smoothing = 0.15, period = 4.0, midpoint = 0.6, brightness = 1.0, gain = 4.0, noiseGate = 0.01
     public var cool = 40.0, hot = 85.0; public var reactiveSpeed = 2
+    public var beatSensitivity:Double?,beatDetail:Double?,beatDecay:Double?
+    public var beatMulticolour:Bool?,beatPercussionFocus:Bool?,beatAdaptive:Bool?
+    public var beatKickColour:RGB?,beatSnareColour:RGB?,beatHatColour:RGB?
+    public var beatPalette:BeatPalette{BeatPalette(kick:beatKickColour ?? RGB(1,0,0),snare:beatSnareColour ?? RGB(0,0,1),hat:beatHatColour ?? RGB(1,1,0))}
+    public var beatConfiguration:BeatConfiguration{BeatConfiguration(sensitivity:beatSensitivity ?? 1,detail:beatDetail ?? 0.5,decay:beatDecay ?? 0.18,gate:noiseGate,percussionFocus:beatPercussionFocus ?? true,adaptive:beatAdaptive ?? true)}
     public init(name: String) { self.name=name }
     public mutating func normalize() {
         rate = min(30,max(1,rate.isFinite ? rate : 10)); smoothing = min(5,max(0,smoothing.isFinite ? smoothing : 0.15)); period = min(120,max(0.2,period.isFinite ? period : 4)); midpoint=min(0.99,max(0.01,midpoint)); brightness=min(1,max(0,brightness)); gain=min(100,max(0,gain)); noiseGate=min(1,max(0,noiseGate)); cool=min(120,max(0,cool)); hot=min(130,max(cool+1,hot)); reactiveSpeed=min(4,max(1,reactiveSpeed))
+    }
+    public func normalizedAudioLevel(_ input:Double?)->Double{
+        guard let input,input.isFinite,noiseGate.isFinite,gain.isFinite,gain>0,input>noiseGate else{return 0}
+        return min(1,max(0,(input-noiseGate)/max(0.000001,1/gain-noiseGate)))
     }
     public func color(time: Double, input: Double? = nil, muted: Bool = false) -> RGB? {
         let c: RGB
@@ -36,7 +48,10 @@ public struct Preset: Codable, Equatable, Identifiable, Sendable {
         case .volume: guard let input else { return nil }; c = muted ? .black : .volume(input,midpoint: midpoint)
         case .battery: guard let input else { return nil }; c = .volume(1-input,midpoint: midpoint)
         case .temperature: guard let input else { return nil }; c = .volume((input-cool)/max(1,hot-cool),midpoint: midpoint)
-        case .audio: guard let input else { return nil }; c = .black.mixed(primary, input < noiseGate ? 0 : min(1,input*gain))
+        case .audio:
+            let normalized=normalizedAudioLevel(input)
+            guard normalized>0 else{return .black}
+            c = .volume(normalized,midpoint:midpoint)
         default: c = primary
         }
         return .black.mixed(c,brightness)
@@ -50,6 +65,9 @@ public struct RazerReport: Sendable {
         var b=[UInt8](repeating:0,count:90); b[1]=0x3f; b[5]=UInt8(size ?? arguments.count); b[6]=commandClass; b[7]=command
         b.replaceSubrange(8..<(8+arguments.count),with:arguments); b[88]=b[2...87].reduce(0,^); bytes=b
     }
+    private init(raw: [UInt8]) { bytes=raw }
+    /// Same report with a different transaction ID; the checksum is unaffected.
+    public func withTransaction(_ id: UInt8) -> RazerReport { var b=bytes; b[1]=id; return RazerReport(raw:b) }
     public func validate(_ reply: [UInt8]) throws {
         guard reply.count == 90 else { throw ProtocolError("Invalid reply length: \(reply.count)") }
         guard reply[88] == reply[2...87].reduce(0,^) else { throw ProtocolError("Reply checksum mismatch") }
@@ -77,4 +95,12 @@ public enum Commands {
     public static func firmwareVersion() -> RazerReport { RazerReport(commandClass:0,command:0x81,arguments:[0,0]) }
     public static func brightness(_ value: UInt8) -> RazerReport { RazerReport(commandClass:15,command:4,arguments:[0,4,value]) }
     public static func getBrightness() -> RazerReport { RazerReport(commandClass:15,command:0x84,arguments:[0,4,0]) }
+}
+
+
+public enum PresetColourTarget:Sendable{
+    case primary,secondary,kick,snare,hat
+    public var title:String{switch self{case .primary:return "Primary colour";case .secondary:return "Second colour";case .kick:return "Bass / kick colour";case .snare:return "Snare colour";case .hat:return "High percussion colour"}}
+    public func colour(in p:Preset)->RGB{switch self{case .primary:return p.primary;case .secondary:return p.secondary;case .kick:return p.beatPalette.kick;case .snare:return p.beatPalette.snare;case .hat:return p.beatPalette.hat}}
+    public func set(_ value:RGB,in p:inout Preset){switch self{case .primary:p.primary=value;case .secondary:p.secondary=value;case .kick:p.beatKickColour=value;case .snare:p.beatSnareColour=value;case .hat:p.beatHatColour=value}}
 }

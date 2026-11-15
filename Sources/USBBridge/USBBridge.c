@@ -7,10 +7,10 @@
 #include <fcntl.h>
 #include <stdio.h>
 struct MCUSB { IOUSBDeviceInterface320 **device; int lock; };
-MCUSB *mc_open(int32_t *error) {
+MCUSB *mc_open(uint16_t vid, uint16_t pid, int32_t *error) {
     CFMutableDictionaryRef match=IOServiceMatching(kIOUSBDeviceClassName);
-    int vid=0x1532,pid=0x008c;
-    CFNumberRef v=CFNumberCreate(NULL,kCFNumberIntType,&vid),p=CFNumberCreate(NULL,kCFNumberIntType,&pid);
+    int vendor=vid,product=pid;
+    CFNumberRef v=CFNumberCreate(NULL,kCFNumberIntType,&vendor),p=CFNumberCreate(NULL,kCFNumberIntType,&product);
     CFDictionarySetValue(match,CFSTR(kUSBVendorID),v); CFDictionarySetValue(match,CFSTR(kUSBProductID),p); CFRelease(v);CFRelease(p);
     io_service_t service=IOServiceGetMatchingService(kIOMainPortDefault,match);
     if(!service){*error=kIOReturnNoDevice;return NULL;}
@@ -23,7 +23,7 @@ MCUSB *mc_open(int32_t *error) {
     IODestroyPlugInInterface(plugin);
     if(hr || !dev){*error=kIOReturnUnsupported;return NULL;}
     // DeviceRequest does not seize or detach the normal HID mouse interfaces.
-    char path[128];snprintf(path,sizeof(path),"/tmp/minichroma-%u-1532-008c.lock",getuid());
+    char path[128];snprintf(path,sizeof(path),"/tmp/minichroma-%u-%04x-%04x.lock",getuid(),vid,pid);
     int lock=open(path,O_CREAT|O_RDWR|O_CLOEXEC|O_NOFOLLOW,0600);
     if(lock<0 || flock(lock,LOCK_EX|LOCK_NB)!=0){if(lock>=0)close(lock);(*dev)->Release(dev);*error=kIOReturnExclusiveAccess;return NULL;}
     MCUSB *handle=calloc(1,sizeof(MCUSB));handle->device=dev;handle->lock=lock;*error=0;return handle;
