@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\MiniChroma\\scripts\\agent-status.ps1\" idle" } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\MiniChroma\\scripts\\agent-status.ps1\" thinking" } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Edit|Write|MultiEdit", "hooks": [ { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\MiniChroma\\scripts\\agent-status.ps1\" editing" } ] },
+      { "matcher": "*", "hooks": [ { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\MiniChroma\\scripts\\agent-status.ps1\" thinking" } ] }
+    ],
+    "Notification": [
+      { "hooks": [ { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\MiniChroma\\scripts\\agent-status.ps1\" needs_input" } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\MiniChroma\\scripts\\agent-status.ps1\" done" } ] }
+    ]
+  }
+}
