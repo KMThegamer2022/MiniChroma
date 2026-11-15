@@ -1,4 +1,4 @@
-name: Windows build
+name: Windows build and release
 
 on:
   push:
@@ -11,22 +11,35 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: windows/src/MiniChroma.Windows
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Publish single-file exe
-        run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
+
+      - name: Publish MiniChroma.exe
+        working-directory: windows/src/MiniChroma.Windows
+        run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        working-directory: windows/installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" MiniChroma.iss'
+
       - uses: actions/upload-artifact@v4
         with:
-          name: MiniChroma-windows-x64
-          path: windows/src/MiniChroma.Windows/out/MiniChroma.exe
-      - name: Create release
+          name: MiniChroma-Setup
+          path: windows/installer-output/*.exe
+
+      - name: Publish GitHub release
         if: startsWith(github.ref, 'refs/tags/windows-v')
         uses: softprops/action-gh-release@v2
         with:
-          files: windows/src/MiniChroma.Windows/out/MiniChroma.exe
+          files: windows/installer-output/*.exe
+          prerelease: true
+          body: |
+            Early Windows build of MiniChroma. Needs OpenRGB running with its SDK server enabled.
+            Not yet tested on hardware. Please report what works and what doesn't.
