@@ -10,7 +10,7 @@ public sealed class TrayApp : ApplicationContext
     private readonly ToolStripMenuItem deviceMenu;
     private readonly Settings settings = Settings.Load();
     private readonly OpenRgbClient openRgb = new();
-    private readonly AgentListener agent = new();
+    private AgentListener? agent;
     private readonly CancellationTokenSource cancel = new();
     private volatile string status = "Starting";
     private int deviceIndex = -1;
@@ -47,6 +47,8 @@ public sealed class TrayApp : ApplicationContext
             ContextMenuStrip = menu,
         };
         tray.DoubleClick += (_, _) => statusItem.Text = status;
+        try { agent = new AgentListener(); }
+        catch (Exception ex) { SetStatus("Claude listener unavailable: " + ex.Message); }
         _ = RunAsync(cancel.Token);
     }
 
@@ -84,7 +86,7 @@ public sealed class TrayApp : ApplicationContext
                 if (deviceIndex < 0) { await Task.Delay(3000, token); continue; }
 
                 double now = DateTime.UtcNow.Subtract(DateTime.UnixEpoch).TotalSeconds;
-                var (agentStatus, seconds) = agent.Current();
+                var (agentStatus, seconds) = agent?.Current() ?? ("idle", 0.0);
                 var (r, g, b) = Effects.Compute(settings, agentStatus, seconds, now);
                 var colours = Enumerable.Repeat((r, g, b), ledCount).ToList();
                 await openRgb.UpdateLedsAsync(deviceIndex, colours);
@@ -172,7 +174,7 @@ public sealed class TrayApp : ApplicationContext
     {
         cancel.Cancel();
         openRgb.Close();
-        agent.Dispose();
+        agent?.Dispose();
         tray.Visible = false;
         Application.Exit();
     }

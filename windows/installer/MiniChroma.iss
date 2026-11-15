@@ -1,5 +1,5 @@
 ; Inno Setup script for MiniChroma on Windows. Built by GitHub Actions; run ISCC.exe on it locally to test.
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.1"
 
 [Setup]
 AppId={{B3E7C1A2-5F4D-4C8E-9A61-7D2E0F3B9C11}
