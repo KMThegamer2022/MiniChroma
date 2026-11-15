@@ -28,6 +28,17 @@ Sync keyboard with mouse mirrors the mouse's lighting to the keyboard. Turn it o
 
 Audio defaults to **25 Hz** in version 0.1.3; other live effects retain the 10 Hz default. A five-minute test on the listed mouse delivered **7,500 validated frames at a 25 Hz target with zero errors**. This is evidence for that device and setup, not a guarantee for every hub or firmware. See [verification](VERIFICATION.md).
 
+## Windows (early build)
+
+An early Windows version lives in [`windows/`](windows/). It controls keyboards and mice through [OpenRGB](https://openrgb.org), so it works with any device OpenRGB supports.
+
+- **Download:** the installer is on the [latest `windows-v*` release](https://github.com/KMThegamer2022/MiniChroma/releases).
+- **You need:** OpenRGB running with its SDK Server turned on. The installer tells you this if OpenRGB isn't found.
+- **Features in this build:** static colour and the Claude agent lights. The game, OBS, Discord and build effects are Mac-only for now.
+- **Status:** this build compiles on GitHub's Windows runner, but it has not been tested on Windows hardware yet. Please report what works and what doesn't.
+
+The Mac app stays the reference version. Claude setup for Windows is in [`windows/README.md`](windows/README.md).
+
 ## Build and run
 
 For the prebuilt app, [download MiniChroma.zip](https://github.com/KMThegamer2022/MiniChroma/raw/refs/heads/main/MiniChroma.zip), extract it, and move MiniChroma.app to Applications. This build is signed for local use and is not notarized.
